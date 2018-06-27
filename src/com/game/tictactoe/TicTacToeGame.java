@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class TicTacToeGame implements Game {
-	private Scanner scanner;
+	private Scanner inputReader;
 	private static final TicTacToeGame ticTacToeGameInstance = null;
-	Player player1;
-	Player player2;
+	Player playerX;
+	Player playerO;
 	Player currentPlayer;
 	String[][] ticTacToeBoard = new String[3][3]; 
 	
@@ -18,14 +18,15 @@ public class TicTacToeGame implements Game {
 	}
 	
 	private TicTacToeGame() {
-		scanner = new Scanner(new InputStreamReader(System.in));
+		inputReader = new Scanner(new InputStreamReader(System.in));
 	}
 
 	@Override
 	public boolean start() {
-		player1 = new Player("X", askAndFetch("Name of player 1:"));
-		player2 = new Player("O", askAndFetch("Name of player 2:"));
-		currentPlayer = player1;
+		playerX = new Player("X", promptPlayer("Name of player 1:"));
+		playerO = new Player("O", promptPlayer("Name of player 2:"));
+		currentPlayer = playerX;
+		
 		System.out.println("Enter \"exit\" at any stage to quit the game. "
 				+ "\n Enter the values as hyphenated row and column numbers. Eg: 1st box is 1-1");
 		process();
@@ -36,8 +37,8 @@ public class TicTacToeGame implements Game {
 	@Override
 	public boolean stop() {
 		
-		player1 = null;
-		player2 = null;
+		playerX = null;
+		playerO = null;
 		ticTacToeBoard= null;
 		
 		System.exit(0);
@@ -49,7 +50,7 @@ public class TicTacToeGame implements Game {
 		
 		while(true) {
 			displayBoard();
-			String playerInput = askAndFetch(currentPlayer.getName() + ":");
+			String playerInput = promptPlayer(currentPlayer.getName() + ":");
 			if (playerInput.equalsIgnoreCase("exit")) {
 				System.out.println("Exiting game. Have a nice day and hope to see you soon.");
 				break;
@@ -79,17 +80,17 @@ public class TicTacToeGame implements Game {
 
 	@Override
 	public String notifyStatus() {
-		// TODO Auto-generated method stub
+		
 		return null;
 	}
 	
-	private String askAndFetch(String question) {
+	private String promptPlayer(String question) {
 		System.out.print(question);
-		return scanner.nextLine();
+		return inputReader.nextLine();
 	}
 	
 	private void updateCurrentPlayer() {
-		currentPlayer = currentPlayer == player1 ? player2 : player1;
+		currentPlayer = currentPlayer == playerX ? playerO : playerX;
 	}
 	
 	private boolean validateInput(String input) {
@@ -113,32 +114,32 @@ public class TicTacToeGame implements Game {
 			}
 			return true;
 		} catch(Exception e) {
-			System.out.println("Invalid input" + e.getMessage());
+			System.out.println("Invalid input. " + e.getMessage());
 			return false;
 		}
 	}
 	
 	private Player determineWinner(int currentRow, int currentCol) {
 		Player winner = null;
-		winner = isRowMatching(currentRow);
+		winner = isRowComplete(currentRow);
 		if (winner != null) {
 			return winner;
 		}
 		
-		winner = isColMatching(currentCol);
+		winner = isColComplete(currentCol);
 		if (winner != null) {
 			return winner;
 		}
 		
 		if (currentRow == currentCol) {
-			winner = isLeftDiagonalMatching(currentRow, currentCol);
+			winner = isLeftDiagonalComplete(currentRow, currentCol);
 			if (winner != null) {
 				return winner;
 			}
 		}
 		
 		if (currentCol == 2 - currentRow) {
-			winner = isRightDiagonalMatching(currentRow, currentCol);
+			winner = isRightDiagonalComplete(currentRow, currentCol);
 			if (winner != null) {
 				return winner;
 			}
@@ -146,64 +147,64 @@ public class TicTacToeGame implements Game {
 		return null;
 	}
 	
-	Player isRowMatching(int row) {
+	Player isRowComplete(int row) {
 		Player winner = null;
 		
-		Map<String, Integer> match = new HashMap<String, Integer>();
+		Map<String, Integer> playerEntryCount = new HashMap<String, Integer>();
 		for(String playerId: ticTacToeBoard[row]) {
 			if (playerId == null) {
 				return null;
 			}
-			updateBoardEntryCount(match, playerId);
+			updateBoardEntryCount(playerEntryCount, playerId);
 			
 		}
-		winner = checkMatchForWinner(match);
+		winner = checkPlayerEntryForWinner(playerEntryCount);
 		return winner;
 	}
 	
-	Player isColMatching(int col) {
+	Player isColComplete(int col) {
 		Player winner = null;
 		
-		Map<String, Integer> match = new HashMap<String, Integer>();
+		Map<String, Integer> playerEntryCount = new HashMap<String, Integer>();
 		for(int i = 0; i < 3; i ++) {
 			String playerId = ticTacToeBoard[i][col];
 			if (playerId == null) {
 				return null;
 			}
-			updateBoardEntryCount(match, playerId);
+			updateBoardEntryCount(playerEntryCount, playerId);
 		}
-		winner = checkMatchForWinner(match);
+		winner = checkPlayerEntryForWinner(playerEntryCount);
 		return winner;
 	}
 	
-	Player isLeftDiagonalMatching(int row, int col) {
+	Player isLeftDiagonalComplete(int row, int col) {
 		Player winner = null;
 		
-		Map<String, Integer> match = new HashMap<String, Integer>();
+		Map<String, Integer> playerEntryCount = new HashMap<String, Integer>();
 		for(int i = 0; i < 3; i ++) {
 			String playerId = ticTacToeBoard[i][i];
 			if (playerId == null) {
 				return null;
 			}
-			updateBoardEntryCount(match, playerId);
+			updateBoardEntryCount(playerEntryCount, playerId);
 		}
-		winner = checkMatchForWinner(match);
+		winner = checkPlayerEntryForWinner(playerEntryCount);
 		return winner;
 	}
 	
-	Player isRightDiagonalMatching(int row, int col) {
+	Player isRightDiagonalComplete(int row, int col) {
 		Player winner = null;
 		
-		Map<String, Integer> match = new HashMap<String, Integer>();
+		Map<String, Integer> playerEntryCount = new HashMap<String, Integer>();
 		for(int i = 0; i < 3; i ++) {
 			String playerId = ticTacToeBoard[i][2 - i];
 			if (playerId == null) {
 				return null;
 			}
-			updateBoardEntryCount(match, playerId);
+			updateBoardEntryCount(playerEntryCount, playerId);
 			
 		}
-		winner = checkMatchForWinner(match);
+		winner = checkPlayerEntryForWinner(playerEntryCount);
 		return winner;
 	}
 	
@@ -217,15 +218,15 @@ public class TicTacToeGame implements Game {
 		match.put(playerId, count);
 	}
 	
-	private Player checkMatchForWinner(Map<String, Integer> match) {
+	private Player checkPlayerEntryForWinner(Map<String, Integer> playerEntryCount) {
 		Player winner = null;
-		Integer player1Count = match.get(player1.getId()); 
-		if (player1Count != null && player1Count == 3) {
-			winner = player1;
+		Integer playerXCount = playerEntryCount.get(playerX.getId()); 
+		if (playerXCount != null && playerXCount == 3) {
+			winner = playerX;
 		}
-		Integer player2Count = match.get(player2.getId()); 
-		if (player2Count != null && player2Count == 3) {
-			winner = player2;
+		Integer playerOCount = playerEntryCount.get(playerO.getId()); 
+		if (playerOCount != null && playerOCount == 3) {
+			winner = playerO;
 		}
 		return winner;
 	}
@@ -236,7 +237,7 @@ public class TicTacToeGame implements Game {
 				String value = ticTacToeBoard[i][j];
 				System.out.print((value == null ? " " : value) + "|");
 			}
-			System.out.println("\n------\n");
+			System.out.println("\n -----\n");
 		}
 	}
 }
